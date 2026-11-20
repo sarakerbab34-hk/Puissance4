@@ -160,3 +160,4 @@ Une suite de **20 tests automatisés** valide scrupuleusement l'ensemble des rè
 17. **Alternance stricte des tours** (Rouge -> Jaune -> Rouge).
 
 > Résultat : **20 tests exécutés, 0 échec, 0 erreur.**
+
