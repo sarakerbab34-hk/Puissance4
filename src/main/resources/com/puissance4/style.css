@@ -1,0 +1,136 @@
+/* Feuille de style CSS pour le jeu Puissance 4 */
+
+.root {
+    -fx-font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    -fx-background-color: linear-gradient(to bottom, #f8f9fa, #e9ecef);
+}
+
+/* En-tête principal */
+.header-box {
+    -fx-padding: 18 25;
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #dee2e6 transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.05), 8, 0, 0, 3);
+}
+
+.game-title {
+    -fx-font-size: 28px;
+    -fx-font-weight: 900;
+    -fx-text-fill: #2c3e50;
+    -fx-letter-spacing: 1px;
+}
+
+/* Badge du joueur courant */
+.turn-badge {
+    -fx-padding: 8 16;
+    -fx-background-radius: 20;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-effect: dropshadow(three-pass-box, rgba(0, 0, 0, 0.1), 5, 0, 0, 2);
+}
+
+.turn-badge-red {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #b91c1c;
+    -fx-border-color: #ef4444;
+    -fx-border-radius: 20;
+    -fx-border-width: 1.5;
+}
+
+.turn-badge-yellow {
+    -fx-background-color: #fef9c3;
+    -fx-text-fill: #a16207;
+    -fx-border-color: #eab308;
+    -fx-border-radius: 20;
+    -fx-border-width: 1.5;
+}
+
+/* Boutons d'action */
+.action-button {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(59, 130, 246, 0.3), 6, 0, 0, 2);
+}
+
+.action-button:hover {
+    -fx-background-color: #2563eb;
+    -fx-effect: dropshadow(three-pass-box, rgba(37, 99, 235, 0.4), 8, 0, 0, 3);
+}
+
+.action-button:pressed {
+    -fx-background-color: #1d4ed8;
+    -fx-translate-y: 1;
+}
+
+.restart-button {
+    -fx-background-color: #64748b;
+    -fx-text-fill: white;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 8 18;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(100, 116, 139, 0.3), 6, 0, 0, 2);
+}
+
+.restart-button:hover {
+    -fx-background-color: #475569;
+}
+
+.restart-button:pressed {
+    -fx-background-color: #334155;
+    -fx-translate-y: 1;
+}
+
+/* Plateau de jeu */
+.board-container {
+    -fx-background-color: #1e3a8a;
+    -fx-background-radius: 20;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(three-pass-box, rgba(30, 58, 138, 0.45), 20, 0, 0, 8);
+}
+
+/* Colonnes cliquables */
+.column-hover-highlight {
+    -fx-background-color: rgba(255, 255, 255, 0.12);
+    -fx-background-radius: 12;
+}
+
+/* Zone de statut / messages inférieure */
+.status-footer {
+    -fx-padding: 14 25;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #dee2e6 transparent transparent transparent;
+    -fx-border-width: 2 0 0 0;
+    -fx-alignment: center;
+}
+
+.status-message {
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
+    -fx-text-fill: #334155;
+}
+
+.status-error {
+    -fx-text-fill: #dc2626;
+    -fx-font-weight: bold;
+}
+
+.status-win {
+    -fx-text-fill: #16a34a;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.status-draw {
+    -fx-text-fill: #d97706;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+

@@ -1,0 +1,17 @@
+# Fichiers de compilation et de build
+target/
+*.class
+
+# Fichiers IDE
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# Fichiers logs et OS
+*.log
+Thumbs.db
+.DS_Store
+
