@@ -40,6 +40,15 @@ public class BoardView extends StackPane {
     // Grille 2D des cercles permanents affichés sur le plateau
     private final Circle[][] cellCircles = new Circle[Board.ROWS][Board.COLUMNS];
 
+    // Constantes d'apparence par défaut des cases vides
+    private static final Color DEFAULT_STROKE_COLOR = Color.web("#172554");
+    private static final double DEFAULT_STROKE_WIDTH = 1.5;
+
+    // Références pour arrêter proprement les animations
+    private final java.util.List<Timeline> winningTimelines = new java.util.ArrayList<>();
+    private TranslateTransition currentDropTransition = null;
+    private Circle currentFallingDisc = null;
+
     // Conteneur pour les animations de chute au premier plan
     private final Pane animationPane = new Pane();
 
@@ -142,20 +151,25 @@ public class BoardView extends StackPane {
     }
 
     /**
-     * Crée une case vide (trou avec dégradé d'ombre intérieure).
+     * Crée le dégradé sombre représentant le fond d'une case vide.
      */
-    private Circle createEmptyHole() {
-        Circle circle = new Circle(CELL_RADIUS);
-        // Fond sombre donnant l'illusion de profondeur dans la planche bleue
-        RadialGradient holeGradient = new RadialGradient(
+    private static RadialGradient createEmptyHoleGradient() {
+        return new RadialGradient(
                 0, 0, 0.5, 0.5, 0.5, true, CycleMethod.NO_CYCLE,
                 new Stop(0.0, Color.web("#0f172a")),
                 new Stop(0.85, Color.web("#1e293b")),
                 new Stop(1.0, Color.web("#334155"))
         );
-        circle.setFill(holeGradient);
-        circle.setStroke(Color.web("#172554"));
-        circle.setStrokeWidth(1.5);
+    }
+
+    /**
+     * Crée une case vide (trou avec dégradé d'ombre intérieure).
+     */
+    private Circle createEmptyHole() {
+        Circle circle = new Circle(CELL_RADIUS);
+        circle.setFill(createEmptyHoleGradient());
+        circle.setStroke(DEFAULT_STROKE_COLOR);
+        circle.setStrokeWidth(DEFAULT_STROKE_WIDTH);
         return circle;
     }
 
@@ -236,6 +250,7 @@ public class BoardView extends StackPane {
         fallingDisc.setCenterX(startX);
         fallingDisc.setCenterY(startY);
         animationPane.getChildren().add(fallingDisc);
+        this.currentFallingDisc = fallingDisc;
 
         // Durée proportionnelle à la distance parcourue avec un minimum
         double distance = targetY - startY;
@@ -246,10 +261,13 @@ public class BoardView extends StackPane {
         transition.setToY(distance);
         // Effet d'accélération gravitationnelle
         transition.setInterpolator(Interpolator.EASE_IN);
+        this.currentDropTransition = transition;
 
         transition.setOnFinished(e -> {
             // Nettoyage du pion animé
             animationPane.getChildren().remove(fallingDisc);
+            this.currentFallingDisc = null;
+            this.currentDropTransition = null;
 
             // Fixation permanente du pion dans la case correspondante
             Circle permanentCell = cellCircles[targetRow][col];
@@ -265,20 +283,27 @@ public class BoardView extends StackPane {
     }
 
     /**
-     * Surligne les cases composant l'alignement gagnant avec un effet de pulsation dorée.
+     * Surligne les cases composant l'alignement gagnant avec un effet lumineux et une pulsation dorée.
      *
      * @param winningPositions Liste des coordonnées [ligne, colonne] des pions gagnants.
      */
     public void highlightWinningCells(List<int[]> winningPositions) {
         if (winningPositions == null) return;
 
+        // Nettoyer d'abord d'éventuelles anciennes animations
+        clearWinningHighlights();
+
         for (int[] pos : winningPositions) {
             int r = pos[0];
             int c = pos[1];
             if (r >= 0 && r < Board.ROWS && c >= 0 && c < Board.COLUMNS) {
                 Circle cell = cellCircles[r][c];
-                cell.setStroke(Color.web("#fbbf24")); // Jaune or éclatant
+                cell.setStroke(Color.web("#fbbf24")); // Bordure jaune or éclatante
                 cell.setStrokeWidth(5.0);
+
+                // Effet lumineux / lueur dorée (glow)
+                DropShadow winGlow = new DropShadow(18, Color.web("#fbbf24"));
+                cell.setEffect(winGlow);
 
                 // Animation de pulsation
                 Timeline pulse = new Timeline(
@@ -289,32 +314,67 @@ public class BoardView extends StackPane {
                 pulse.setCycleCount(Timeline.INDEFINITE);
                 pulse.setAutoReverse(true);
                 pulse.play();
+
+                // Enregistrement de la Timeline pour pouvoir l'arrêter proprement
+                winningTimelines.add(pulse);
+            }
+        }
+    }
+
+    /**
+     * Supprime complètement tous les effets de surbrillance, lueurs lumineuses
+     * et animations de pulsation sur l'ensemble de la grille.
+     */
+    public void clearWinningHighlights() {
+        // 1. Arrêter et vider toutes les animations de pulsation en cours
+        for (Timeline timeline : winningTimelines) {
+            timeline.stop();
+        }
+        winningTimelines.clear();
+
+        // 2. Réinitialiser l'échelle, les bordures et les effets graphiques de toutes les cases
+        for (int r = 0; r < Board.ROWS; r++) {
+            for (int c = 0; c < Board.COLUMNS; c++) {
+                Circle cell = cellCircles[r][c];
+                cell.setScaleX(1.0);
+                cell.setScaleY(1.0);
+                cell.setStroke(DEFAULT_STROKE_COLOR);
+                cell.setStrokeWidth(DEFAULT_STROKE_WIDTH);
+                cell.setEffect(null);
             }
         }
     }
 
     /**
      * Réinitialise visuellement l'ensemble des cases du plateau.
+     * Arrête toutes les animations, supprime les surbrillances et rétablit les trous vides.
      */
     public void reset() {
+        // Arrêt des animations de victoire et réinitialisation des bordures/effets
+        clearWinningHighlights();
+
+        // Arrêt d'une éventuelle chute en cours
+        if (currentDropTransition != null) {
+            currentDropTransition.stop();
+            currentDropTransition = null;
+        }
+        if (currentFallingDisc != null) {
+            animationPane.getChildren().remove(currentFallingDisc);
+            currentFallingDisc = null;
+        }
+
         animationPane.getChildren().removeIf(node -> node != previewDisc);
         previewDisc.setVisible(false);
 
+        // Rétablissement de toutes les cases dans leur état vide initial
         for (int r = 0; r < Board.ROWS; r++) {
             for (int c = 0; c < Board.COLUMNS; c++) {
                 Circle hole = cellCircles[r][c];
                 hole.setScaleX(1.0);
                 hole.setScaleY(1.0);
-                hole.setStroke(Color.web("#172554"));
-                hole.setStrokeWidth(1.5);
-
-                RadialGradient holeGradient = new RadialGradient(
-                        0, 0, 0.5, 0.5, 0.5, true, CycleMethod.NO_CYCLE,
-                        new Stop(0.0, Color.web("#0f172a")),
-                        new Stop(0.85, Color.web("#1e293b")),
-                        new Stop(1.0, Color.web("#334155"))
-                );
-                hole.setFill(holeGradient);
+                hole.setStroke(DEFAULT_STROKE_COLOR);
+                hole.setStrokeWidth(DEFAULT_STROKE_WIDTH);
+                hole.setFill(createEmptyHoleGradient());
                 hole.setEffect(null);
             }
         }

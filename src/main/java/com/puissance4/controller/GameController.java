@@ -112,11 +112,14 @@ public class GameController {
         // Interrompre toute animation éventuelle
         isAnimationRunning = false;
 
+        // Réinitialiser la vue (arrêt des animations, suppression des highlights et réinitialisation des cases)
+        view.getBoardView().clearWinningHighlights();
+        view.getBoardView().reset();
+
         // Réinitialiser le modèle
         game.restart();
 
-        // Réinitialiser la vue
-        view.getBoardView().reset();
+        // Réinitialiser l'affichage
         view.updateCurrentPlayer(Player.RED);
         view.showMessage("Nouvelle partie commencée. Le joueur Rouge commence !");
     }
