@@ -1,163 +1,128 @@
-# Puissance 4 — Mini-Projet Universitaire d'Intelligence Artificielle
+# Puissance 4 (Connect 4) — Minimax et Alpha-Beta
 
-Ce projet est une application Java de jeu **Puissance 4** conçue dans le cadre d'un mini-projet universitaire d'Intelligence Artificielle.
-Ce dépôt contient le développement complet de la composante **Interface de jeu (Back-End métier & Front-End JavaFX)**, structurée selon le patron d'architecture **MVC (Modèle - Vue - Contrôleur)**.
+Mini-projet d'Intelligence Artificielle (module « Stratégies de recherche »), FSTT Tanger, cycle ingénieur LSI.
+Application Java du jeu Puissance 4 qui met en œuvre les algorithmes **Minimax** et **Alpha-Beta**,
+avec une interface graphique JavaFX et une version console.
 
----
-
-## 1. Présentation et Objectif du Jeu
-
-Le Puissance 4 est un jeu de stratégie à deux joueurs se déroulant sur une grille verticale :
-* **Grille** : 7 colonnes et 6 lignes (42 cases au total).
-* **Joueurs** : Joueur **Rouge** et Joueur **Jaune**.
-* **Départ** : Le joueur Rouge commence toujours la partie.
-* **Gravité** : Lorsqu'un joueur sélectionne une colonne, son pion glisse automatiquement jusqu'à la case vide la plus basse disponible.
-* **Victoire** : Le premier joueur qui parvient à aligner **4 pions** de sa couleur horizontalement, verticalement ou diagonalement (dans les deux sens) remporte la partie.
-* **Match nul** : Si toutes les cases de la grille sont remplies sans qu'aucun alignement de 4 ne soit formé, la partie se termine par un match nul.
-* **Fin de partie** : Dès la fin de la partie (victoire ou match nul), plus aucun nouveau coup n'est accepté.
+**Groupe :** Khadija DALHI, Sara KERBAB, Christommy INDRAY — **Encadrant :** M'hamed AIT KBIR
 
 ---
 
-## 2. Technologies Utilisées
+## 1. Règles du jeu
 
-* **Langage** : Java 21 (LTS)
-* **Interface Graphique** : JavaFX 21 (`javafx-controls`, `javafx-fxml`)
-* **Gestionnaire de dépendances et build** : Apache Maven 3.10+
-* **Framework de tests unitaires** : JUnit 5 (Jupiter 5.10.2)
-* **Architecture** : MVC pur (Modèle indépendant de tout composant graphique)
-* **Styles visuels** : CSS JavaFX personnalisé avec dégradés radiaux 3D et effets d'ombrage
+Grille verticale de 7 colonnes et 6 lignes. Les joueurs Rouge et Jaune placent à tour de rôle un pion
+dans une colonne non pleine ; le pion tombe jusqu'à la case libre la plus basse. **Rouge commence.**
+Le premier joueur qui aligne quatre pions (horizontalement, verticalement ou en diagonale) gagne ;
+si la grille est pleine sans alignement, la partie est nulle.
 
----
+## 2. Fonctionnalités
 
-## 3. Prérequis
+| Exigence de l'énoncé | Réalisation |
+| :--- | :--- |
+| Aide limitée | Nombre d'aides fixé au menu (0 à 9) ; bouton « Aide (n) » en interface graphique, commande `h` en console |
+| Complexité du jeu | Difficulté = profondeur de recherche : Facile (2), Moyen (4), Difficile (6) |
+| Stratégie de la machine et de l'aide | Minimax ou Alpha-Beta, au choix dans le menu |
+| Deux joueurs ou contre la machine | Deux modes ; contre la machine, l'humain joue Rouge et la machine Jaune |
+| Refus des positionnements non autorisés | Colonne pleine, saisie invalide, partie terminée, aide épuisée, clic pendant une animation |
+| Sauvegarde et restauration | Classe `GameSave` : fichier texte, restauration par rejeu des coups |
+| Hiérarchie de classes du cours | `Position`, `Move`, `GameSearch` et leurs sous-classes `Connect4Position`, `Connect4Move`, `Connect4Search` |
+| `alphaBetaHelper` remplacée | `GameSearch` utilise `max_Value(...)` et `min_Value(...)` |
 
-* **JDK 21** ou version supérieure installée et accessible via la variable d'environnement `JAVA_HOME`.
-* **Maven 3.8+** installé et accessible dans le `PATH`.
+## 3. Technologies
 
----
+Java 21, JavaFX 21, Maven, JUnit 5 (5.10.2).
 
-## 4. Structure du Projet
+## 4. Prérequis
+
+JDK 21 et Maven 3.8+ (`java -version` doit afficher 21). Sous Debian / Kali :
+`sudo apt install git maven openjdk-21-jdk`.
+
+## 5. Lancer le projet
+
+```bash
+git clone https://github.com/sarakerbab34-hk/Puissance4.git
+cd Puissance4
+mvn -q compile
+
+# Interface graphique JavaFX (session graphique requise)
+mvn javafx:run
+
+# Version console
+java -cp target/classes com.puissance4.ConsoleApp
+
+# Tests unitaires du modèle
+mvn clean test
+```
+
+Depuis un IDE, exécuter `com.puissance4.Launcher` (interface graphique) ou `com.puissance4.ConsoleApp`.
+
+### Version console : commandes
+
+Pendant la partie, saisir un numéro de colonne (**1 à 7**) ou une commande :
+
+| Saisie | Action |
+| :--- | :--- |
+| `1` … `7` | Jouer dans cette colonne |
+| `h` | Demander une aide (consomme une aide) |
+| `s` | Sauvegarder la partie dans `savegame.txt` |
+| `q` | Quitter |
+
+Le menu de départ permet aussi de charger la partie enregistrée dans `savegame.txt`.
+La machine affiche le nombre de nœuds explorés à chaque coup.
+
+### Format du fichier de sauvegarde
 
 ```text
-Puissance4/
-├── pom.xml                                      # Configuration Maven (Java 21, JavaFX, JUnit 5)
-├── README.md                                    # Documentation complète du projet
-├── .gitignore                                   # Fichiers exclus du versionnement Git
-└── src/
-    ├── main/
-    │   ├── java/
-    │   │   └── com/puissance4/
-    │   │       ├── Launcher.java                # Point d'entrée pour lancement simplifié en IDE
-    │   │       ├── MainApp.java                 # Classe Application JavaFX (initialisation MVC)
-    │   │       ├── model/                       # BACK-END MÉTIER (Indépendant de l'UI)
-    │   │       │   ├── Player.java              # Enumération des joueurs (RED, YELLOW)
-    │   │       │   ├── GameState.java           # États du jeu (EN_COURS, VICTOIRE, NUL)
-    │   │       │   ├── MoveResult.java          # Résultat immuable d'un coup joué
-    │   │       │   ├── Board.java               # Moteur de la grille 6x7, gravité et victoires
-    │   │       │   └── Game.java                # Coordinateur des tours, règles et états
-    │   │       ├── view/                        # FRONT-END JAVAFX
-    │   │       │   ├── BoardView.java           # Plateau visuel bleu, trous circulaires, animations
-    │   │       │   └── GameView.java            # Vue globale (en-tête, plateau, messages de statut)
-    │   │       └── controller/                  # CONTRÔLEUR
-    │   │           └── GameController.java      # Écouteurs de clics, liaison Model-View, verrou d'animation
-    │   └── resources/
-    │       └── com/puissance4/
-    │           └── style.css                    # Styles CSS pour les boutons, badges et conteneurs
-    └── test/
-        └── java/
-            └── com/puissance4/model/            # TESTS UNITAIRES JUNIT 5
-                ├── BoardTest.java               # 14 tests pour Board (grille, gravité, alignements)
-                └── GameTest.java                # 6 tests pour Game (tours, victoire, match nul, refus)
+P4SAVE v1
+mode=2
+depth=4
+pruning=true
+helps=3
+moves=3,3,2,4
 ```
 
----
+`mode` : 1 = deux joueurs, 2 = contre la machine ; `pruning` : `true` = Alpha-Beta ;
+`moves` : colonnes jouées (0 à 6) dans l'ordre. La restauration rejoue les coups et refuse tout
+fichier absent, illisible ou contenant un coup illégal.
 
-## 5. Description des Classes Développées
+## 6. Architecture (MVC)
 
-### A. Modèle (Back-End)
-* **`Player`** : Énumération (`RED`, `YELLOW`) définissant les noms d'affichage, couleurs hexadécimales et méthode d'alternance (`getOpponent()`).
-* **`GameState`** : Énumération représentant l'état de la partie (`IN_PROGRESS`, `RED_WON`, `YELLOW_WON`, `DRAW`).
-* **`MoveResult`** : Record immuable retourné après chaque coup (`row`, `col`, `player`, `isWin`, `isDraw`, `winningPositions`).
-* **`Board`** :
-  * Modélisation de la grille 6 × 7 avec indices : ligne 0 = sommet, ligne 5 = fond.
-  * Placement des pions selon la gravité physique (`placePiece(col, player)`).
-  * Vérification des indices valides et colonnes pleines (`isValidColumn`, `isColumnFull`).
-  * Détection universelle des 4 alignements gagnants (horizontal, vertical, diagonale ascendante `/`, diagonale descendante `\`).
-  * Sauvegarde des coordonnées exactes des pions gagnants pour le surlignage graphique.
-  * Réinitialisation complète (`reset()`).
-* **`Game`** :
-  * Coordonne le cycle de jeu : départ avec le joueur Rouge, alternance stricte des tours.
-  * Déclenche la fin de partie lors d'une victoire ou d'un match nul.
-  * Refuse tout coup supplémentaire une fois la partie terminée (`IllegalStateException`).
-  * Permet le redémarrage propre (`restart()`).
-
-### B. Vue (Front-End)
-* **`BoardView`** :
-  * Plateau bleu roi moderne avec coins arrondis et ombre portée.
-  * Cases circulaires avec simulation de profondeur (ombres intérieures).
-  * Pions avec dégradés radiaux 3D et reflets lumineux réalistes.
-  * Détection de survol avec pion fantôme prévisualisant la colonne visée.
-  * Animation fluide de chute (`TranslateTransition`) avec accélération gravitationnelle (`Interpolator.EASE_IN`).
-  * Animation pulsante dorée sur les 4 pions victorieux en fin de partie.
-* **`GameView`** :
-  * En-tête : Titre, badge du joueur courant (pastille dynamique), boutons d'action (*Nouvelle partie*, *Recommencer*).
-  * Pied de page : Zone de notifications dynamiques (messages informatifs, alertes d'erreurs, célébration de victoire).
-
-### C. Contrôleur
-* **`GameController`** :
-  * Intercepte les clics sur les colonnes.
-  * Vérifie l'état du jeu et rejette les coups invalides ou prématurés.
-  * Intègre un **verrou d'animation** (`isAnimationRunning`) évitant les clics intempestifs ou la désynchronisation pendant la chute d'un pion.
-  * Met à jour la vue de manière fluide en fin d'animation.
-
----
-
-## 6. Instructions pour Lancer le Projet
-
-### Méthode 1 : En ligne de commande avec Maven (recommandé)
-Pour lancer directement l'interface de jeu :
-```bash
-mvn javafx:run
+```text
+src/main/java/com/puissance4/
+├── MainApp.java, Launcher.java, ConsoleApp.java   # application JavaFX, lanceur, version console
+├── model/        # règles du jeu, indépendant de toute interface
+│   ├── Board, Game, Player, GameState, MoveResult
+│   └── GameSave, GameSettings                      # sauvegarde et paramètres du menu
+├── ai/           # stratégies de recherche (hiérarchie du cours)
+│   ├── Position, Move                              # classes abstraites du cours
+│   ├── GameSearch                                  # max_Value / min_Value, test d'arrêt, compteur de nœuds
+│   ├── Connect4Position, Connect4Move, Connect4Search
+│   └── AIPlayer, SearchResult                      # adaptateur plateau -> position, résultat de recherche
+├── view/         # JavaFX : MenuView, GameView, BoardView
+└── controller/   # GameController, SaveFileDialogs
 ```
 
-### Méthode 2 : Depuis votre IDE (Antigravity, IntelliJ, Eclipse, VS Code)
-Exécutez la méthode `main` de la classe :
-`com.puissance4.Launcher` ou `com.puissance4.MainApp`.
+- **`Board`** : grille 6×7 (ligne 0 en haut), gravité, refus des colonnes pleines ou invalides, détection des alignements.
+- **`Game`** : joueur courant (Rouge commence), état de la partie, refus de tout coup après la fin.
+- **`GameController`** : clics, machine dans un thread séparé (`Task`), aide, sauvegarde, chargement, verrou contre les clics pendant une animation.
+- **`AIPlayer`** : convertit le plateau en position de recherche ; le joueur qui cherche un coup joue toujours le rôle de `PROGRAM`, ce qui permet de réutiliser le même code pour la machine et pour l'aide.
 
----
+## 7. Algorithmes
 
-## 7. Commandes Maven Utiles
+- **Minimax / Alpha-Beta** : `GameSearch.max_Value` et `min_Value` sont mutuellement récursives. Le drapeau `pruning` active ou désactive les coupures α/β : avec `pruning = false`, le même code se comporte comme un Minimax pur.
+- **Test d'arrêt** : victoire (`1 000 000 − profondeur`), défaite (`−1 000 000 + profondeur`), nul (0), profondeur maximale (évaluation heuristique). Le terme de profondeur fait préférer une victoire rapide.
+- **Évaluation** : bonus pour la colonne centrale (+3 / −3 par pion) et analyse des 69 fenêtres de 4 cases (3 pions + 1 vide : +5, 2 pions + 2 vides : +2 ; menaces adverses : −4 et −1).
+- **Ordre d'exploration** : colonnes 4, 3, 5, 2, 6, 1, 7 (centre d'abord) pour améliorer l'élagage.
 
-| Commande | Action |
-| :--- | :--- |
-| `mvn clean compile` | Nettoie et compile l'ensemble des sources Java |
-| `mvn clean test` | Exécute la suite complète des tests unitaires JUnit 5 |
-| `mvn javafx:run` | Lance l'application graphique JavaFX |
-| `mvn package` | Génère l'archive JAR du projet |
+## 8. Tests
 
----
+20 tests unitaires JUnit 5 pour le modèle (`BoardTest` : 14, `GameTest` : 6), exécutés par `mvn clean test`.
+Les classes de recherche (`GameSearch`, `Connect4Search`, `AIPlayer`) et `GameSave` n'ont pas encore de test
+unitaire dédié ; elles ont été validées par des parties jouées et par la comparaison Minimax / Alpha-Beta
+décrite dans le compte rendu.
 
-## 8. Résumé des Tests Unitaires (JUnit 5)
+## 9. Limites connues
 
-Une suite de **20 tests automatisés** valide scrupuleusement l'ensemble des règles du cahier des charges :
-
-1. **Création d'une grille vide** (dimensions 6x7, 0 pion, toutes cases vides).
-2. **Placement d'un pion rouge** au fond de la grille.
-3. **Placement d'un pion jaune** au fond de la grille.
-4. **Gravité naturelle** : les pions s'empilent du bas (ligne 5) vers le haut (ligne 0).
-5. **Placement de plusieurs pions** dans une même colonne.
-6. **Refus d'une colonne pleine** (levée d'exception `IllegalStateException`).
-7. **Refus des indices de colonne invalides** (`-1`, `7`, `100` via `IllegalArgumentException`).
-8. **Détection de victoire horizontale** (4 pions consécutifs).
-9. **Détection de victoire verticale** (4 pions empilés).
-10. **Détection de victoire diagonale montante** (`/`).
-11. **Détection de victoire diagonale descendante** (`\`).
-12. **Absence de victoire** avec seulement 3 pions alignés.
-13. **Détection d'une grille pleine** (42 pions insérés sans victoire).
-14. **Détection du match nul** (`GameState.DRAW`).
-15. **Refus de jouer après la fin de la partie** (exception après victoire ou match nul).
-16. **Redémarrage et réinitialisation de la partie** (`restart()`).
-17. **Alternance stricte des tours** (Rouge -> Jaune -> Rouge).
-
-> Résultat : **20 tests exécutés, 0 échec, 0 erreur.**
-
+La machine joue toujours les Jaunes et sa recherche est déterministe ; le nombre d'aides initial n'est pas
+conservé dans la sauvegarde (« Recommencer » après un chargement rend les aides restantes enregistrées) ;
+l'aide est calculée dans le thread de l'interface graphique. Voir le chapitre 8 du compte rendu.
