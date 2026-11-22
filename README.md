@@ -120,9 +120,3 @@ src/main/java/com/puissance4/
 Les classes de recherche (`GameSearch`, `Connect4Search`, `AIPlayer`) et `GameSave` n'ont pas encore de test
 unitaire dédié ; elles ont été validées par des parties jouées et par la comparaison Minimax / Alpha-Beta
 décrite dans le compte rendu.
-
-## 9. Limites connues
-
-La machine joue toujours les Jaunes et sa recherche est déterministe ; le nombre d'aides initial n'est pas
-conservé dans la sauvegarde (« Recommencer » après un chargement rend les aides restantes enregistrées) ;
-l'aide est calculée dans le thread de l'interface graphique. Voir le chapitre 8 du compte rendu.
