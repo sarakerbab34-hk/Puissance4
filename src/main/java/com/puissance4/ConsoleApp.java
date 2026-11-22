@@ -1,8 +1,6 @@
 package com.puissance4;
 
-import com.puissance4.ai.Connect4Position;
-import com.puissance4.ai.Connect4Search;
-import com.puissance4.ai.GameSearch;
+import com.puissance4.ai.AIPlayer;
 import com.puissance4.model.*;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -47,15 +45,15 @@ public class ConsoleApp {
         }
 
         Board b = g.getBoard();
-        Connect4Search search = new Connect4Search(depth, pruning);
+        AIPlayer ai = new AIPlayer(depth, pruning);
 
         while (!g.isGameOver()) {
             show(b);
             Player cur = g.getCurrentPlayer();
             if (mode == 2 && cur == Player.YELLOW) {
-                int col = pick(search, b, cur);
+                int col = ai.bestColumn(b, cur);
                 System.out.println("Machine plays column " + (col + 1)
-                        + " (nodes explored: " + search.getNodesVisited() + ")");
+                        + " (nodes explored: " + ai.getLastNodes() + ")");
                 g.play(col);
                 moves.add(col);
                 continue;
@@ -78,9 +76,9 @@ public class ConsoleApp {
                     System.out.println("!! No help left.");
                 } else {
                     helps--;
-                    int col = pick(search, b, cur);
+                    int col = ai.bestColumn(b, cur);
                     System.out.println("Suggestion: column " + (col + 1)
-                            + " (nodes explored: " + search.getNodesVisited() + ")");
+                            + " (nodes explored: " + ai.getLastNodes() + ")");
                 }
                 continue;
             }
@@ -96,20 +94,6 @@ public class ConsoleApp {
         }
         show(b);
         System.out.println(g.getWinner() == null ? "Result: DRAW" : "Winner: " + g.getWinner().getDisplayName());
-    }
-
-    /** Meilleure colonne pour "cur" : cur joue le rôle de PROGRAM dans la recherche. */
-    private static int pick(Connect4Search search, Board b, Player cur) {
-        Connect4Position pos = new Connect4Position();
-        for (int r = 0; r < Board.ROWS; r++) {
-            for (int c = 0; c < Board.COLUMNS; c++) {
-                Player p = b.getCell(r, c);
-                if (p != null) {
-                    pos.setCell(r, c, Connect4Position.piece(p == cur ? GameSearch.PROGRAM : GameSearch.HUMAN));
-                }
-            }
-        }
-        return search.bestColumn(pos, GameSearch.PROGRAM);
     }
 
     private static int ask(Scanner s, String question, int min, int max) {
