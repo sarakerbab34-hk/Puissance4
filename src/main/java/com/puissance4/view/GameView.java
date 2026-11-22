@@ -25,6 +25,9 @@ public class GameView extends BorderPane {
     private final HBox turnBadgeBox;
     private final Button newGameButton;
     private final Button restartButton;
+    private final Button helpButton;
+    private final Button saveButton;
+    private final Button loadButton;
     private final Label statusMessageLabel;
 
     /**
@@ -61,7 +64,20 @@ public class GameView extends BorderPane {
         HBox header = new HBox(20, titleLabel, spacer1, turnBadgeBox, spacer2, buttonBox);
         header.setAlignment(Pos.CENTER);
         header.getStyleClass().add("header-box");
-        setTop(header);
+        // Barre d'outils : aide, sauvegarde, chargement
+        this.helpButton = new Button("💡 Aide (0)");
+        this.helpButton.getStyleClass().add("action-button");
+        this.saveButton = new Button("💾 Sauvegarder");
+        this.saveButton.getStyleClass().add("restart-button");
+        this.loadButton = new Button("📂 Charger");
+        this.loadButton.getStyleClass().add("restart-button");
+        Region toolbarSpacer = new Region();
+        HBox.setHgrow(toolbarSpacer, Priority.ALWAYS);
+        HBox toolbar = new HBox(10, helpButton, toolbarSpacer, saveButton, loadButton);
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        toolbar.setPadding(new Insets(10, 25, 0, 25));
+
+        setTop(new VBox(header, toolbar));
 
         // 2. Zone centrale : Plateau de jeu
         VBox centerBox = new VBox(boardView);
@@ -151,6 +167,23 @@ public class GameView extends BorderPane {
 
     public Button getNewGameButton() {
         return newGameButton;
+    }
+
+    public Button getHelpButton() {
+        return helpButton;
+    }
+
+    public Button getSaveButton() {
+        return saveButton;
+    }
+
+    public Button getLoadButton() {
+        return loadButton;
+    }
+
+    /** Met à jour le compteur d'aides restantes affiché sur le bouton. */
+    public void setHelpCount(int remaining) {
+        helpButton.setText("💡 Aide (" + remaining + ")");
     }
 
     public Button getRestartButton() {

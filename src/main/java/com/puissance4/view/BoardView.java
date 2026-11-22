@@ -381,6 +381,13 @@ public class BoardView extends StackPane {
         setInteractionEnabled(true);
     }
 
+    /**
+     * Place directement un pion dans une case (sans animation), utilisé lors de la restauration d'une partie.
+     */
+    public void setCellPiece(int row, int col, Player player) {
+        applyPlayerStyle(cellCircles[row][col], player);
+    }
+
     public void setOnColumnClick(Consumer<Integer> onColumnClick) {
         this.onColumnClick = onColumnClick;
     }

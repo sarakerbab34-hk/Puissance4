@@ -15,3 +15,6 @@ target/
 Thumbs.db
 .DS_Store
 
+savegame.txt
+Screenshot_*.png
+Screenshot_*
