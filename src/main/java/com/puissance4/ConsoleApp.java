@@ -4,20 +4,48 @@ import com.puissance4.ai.Connect4Position;
 import com.puissance4.ai.Connect4Search;
 import com.puissance4.ai.GameSearch;
 import com.puissance4.model.*;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
-/** Version terminal de Puissance 4 : 2 joueurs ou contre la machine (Minimax / Alpha-Beta). */
+/** Version terminal de Puissance 4 : 2 joueurs ou contre la machine, aide, sauvegarde. */
 public class ConsoleApp {
+
+    private static final Path SAVE_FILE = Paths.get("savegame.txt");
 
     public static void main(String[] args) {
         Scanner s = new Scanner(System.in);
         System.out.println("=== PUISSANCE 4 ===");
-        int mode = ask(s, "Mode: 1) 2 players  2) vs machine (machine = Jaune)", 1, 2);
-        int depth = new int[]{0, 2, 4, 6}[ask(s, "Difficulty: 1) Easy  2) Medium  3) Hard", 1, 3)];
-        boolean pruning = ask(s, "Strategy (machine + help): 1) Minimax  2) Alpha-Beta", 1, 2) == 2;
-        int helps = ask(s, "Number of helps allowed (0-9)", 0, 9);
-
+        int mode = 1, depth = 4, helps = 0;
+        boolean pruning = true;
         Game g = new Game();
+        List<Integer> moves = new ArrayList<>();
+
+        int choice = ask(s, "1) 2 players  2) vs machine (machine = Jaune)  3) Load saved game", 1, 3);
+        if (choice == 3) {
+            try {
+                GameSave sv = GameSave.load(SAVE_FILE);
+                g = sv.replay();
+                mode = sv.mode;
+                depth = sv.depth;
+                pruning = sv.pruning;
+                helps = sv.helps;
+                moves.addAll(sv.moves);
+                System.out.println("Game loaded (" + moves.size() + " moves played).");
+            } catch (IOException | RuntimeException e) {
+                System.out.println("!! Cannot load " + SAVE_FILE + ": " + e.getMessage());
+                return;
+            }
+        } else {
+            mode = choice;
+            depth = new int[]{0, 2, 4, 6}[ask(s, "Difficulty: 1) Easy  2) Medium  3) Hard", 1, 3)];
+            pruning = ask(s, "Strategy (machine + help): 1) Minimax  2) Alpha-Beta", 1, 2) == 2;
+            helps = ask(s, "Number of helps allowed (0-9)", 0, 9);
+        }
+
         Board b = g.getBoard();
         Connect4Search search = new Connect4Search(depth, pruning);
 
@@ -29,11 +57,22 @@ public class ConsoleApp {
                 System.out.println("Machine plays column " + (col + 1)
                         + " (nodes explored: " + search.getNodesVisited() + ")");
                 g.play(col);
+                moves.add(col);
                 continue;
             }
-            System.out.print(cur.getDisplayName() + " - column (1-7, h=help [" + helps + " left], q=quit): ");
+            System.out.print(cur.getDisplayName() + " - column (1-7, h=help [" + helps
+                    + " left], s=save, q=quit): ");
             String line = s.nextLine().trim();
             if (line.equalsIgnoreCase("q")) return;
+            if (line.equalsIgnoreCase("s")) {
+                try {
+                    new GameSave(mode, depth, pruning, helps, moves).save(SAVE_FILE);
+                    System.out.println("Game saved to " + SAVE_FILE.toAbsolutePath());
+                } catch (IOException e) {
+                    System.out.println("!! Cannot save: " + e.getMessage());
+                }
+                continue;
+            }
             if (line.equalsIgnoreCase("h")) {
                 if (helps == 0) {
                     System.out.println("!! No help left.");
@@ -46,9 +85,11 @@ public class ConsoleApp {
                 continue;
             }
             try {
-                g.play(Integer.parseInt(line) - 1);
+                int col = Integer.parseInt(line) - 1;
+                g.play(col);
+                moves.add(col);
             } catch (NumberFormatException e) {
-                System.out.println("!! Enter a number 1-7, h or q.");
+                System.out.println("!! Enter a number 1-7, h, s or q.");
             } catch (IllegalArgumentException | IllegalStateException e) {
                 System.out.println("!! " + e.getMessage());
             }
