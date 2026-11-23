@@ -9,7 +9,7 @@
     <packaging>jar</packaging>
 
     <name>Puissance4</name>
-    <description>Mini-projet universitaire d'Intelligence Artificielle - Jeu de Puissance 4</description>
+    <description>Mini-projet universitaire - Méthodologies de l'intelligence artificielle - Jeu de Puissance 4</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

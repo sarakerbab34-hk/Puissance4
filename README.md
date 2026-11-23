@@ -1,6 +1,7 @@
 # Puissance 4 (Connect 4) — Minimax et Alpha-Beta
 
-Mini-projet d'Intelligence Artificielle (module « Stratégies de recherche »), FSTT Tanger, cycle ingénieur LSI.
+Mini-projet du module « Méthodologies de l'intelligence artificielle » (stratégies de recherche), FSTT Tanger,
+cycle ingénieur Logiciels et Systèmes Intelligents (LSI).
 Application Java du jeu Puissance 4 qui met en œuvre les algorithmes **Minimax** et **Alpha-Beta**,
 avec une interface graphique JavaFX et une version console.
 
@@ -24,6 +25,7 @@ si la grille est pleine sans alignement, la partie est nulle.
 | Stratégie de la machine et de l'aide | Minimax ou Alpha-Beta, au choix dans le menu |
 | Deux joueurs ou contre la machine | Deux modes ; contre la machine, l'humain joue Rouge et la machine Jaune |
 | Refus des positionnements non autorisés | Colonne pleine, saisie invalide, partie terminée, aide épuisée, clic pendant une animation |
+| 21 pions par joueur | Par construction : la grille compte 42 cases et les joueurs alternent (Rouge en premier), donc chacun place exactement 21 pions à grille pleine ; aucun compteur de pions séparé n'est nécessaire |
 | Sauvegarde et restauration | Classe `GameSave` : fichier texte, restauration par rejeu des coups |
 | Hiérarchie de classes du cours | `Position`, `Move`, `GameSearch` et leurs sous-classes `Connect4Position`, `Connect4Move`, `Connect4Search` |
 | `alphaBetaHelper` remplacée | `GameSearch` utilise `max_Value(...)` et `min_Value(...)` |
@@ -114,7 +116,22 @@ src/main/java/com/puissance4/
 - **Évaluation** : bonus pour la colonne centrale (+3 / −3 par pion) et analyse des 69 fenêtres de 4 cases (3 pions + 1 vide : +5, 2 pions + 2 vides : +2 ; menaces adverses : −4 et −1).
 - **Ordre d'exploration** : colonnes 4, 3, 5, 2, 6, 1, 7 (centre d'abord) pour améliorer l'élagage.
 
-## 8. Tests
+## 8. Résultats de l'évaluation
+
+Nombre de nœuds explorés pour le premier coup sur la grille vide (détails dans le compte rendu) :
+
+| Profondeur | Minimax | Alpha-Beta | Réduction |
+| ---: | ---: | ---: | ---: |
+| 2 | 57 | 21 | × 2,7 |
+| 4 | 2 801 | 180 | × 15,6 |
+| 6 | 137 257 | 1 371 | × 100 |
+| 8 | 6 634 027 | 9 520 | × 697 |
+
+Sur les 10 couples (position, profondeur) testés, Minimax et Alpha-Beta choisissent la même colonne : l'élagage
+ne change pas la décision, seulement le coût du calcul. Dans un tournoi entre niveaux, la machine qui cherche le
+plus profondément gagne à chaque fois (Difficile > Moyen > Facile).
+
+## 9. Tests
 
 20 tests unitaires JUnit 5 pour le modèle (`BoardTest` : 14, `GameTest` : 6), exécutés par `mvn clean test`.
 Les classes de recherche (`GameSearch`, `Connect4Search`, `AIPlayer`) et `GameSave` n'ont pas encore de test
